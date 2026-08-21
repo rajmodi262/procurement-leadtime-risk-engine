@@ -37,10 +37,10 @@ def render_procurement_suite():
     ax_top.axis('off')
     r_top = patches.FancyBboxPatch((0, 0), 1, 1, boxstyle="round,pad=0.015", fc="#0f172a", ec="#1e293b", lw=1.5, transform=ax_top.transAxes)
     ax_top.add_patch(r_top)
-    ax_top.text(0.015, 0.65, "EATON GLOBAL PROCUREMENT WAR ROOM | SUPPLIER PERFORMANCE & SPEND PULSE", fontsize=15, fontweight='bold', color='#38bdf8', va='center')
-    ax_top.text(0.015, 0.25, "Multi-Plant Inbound PO Analytics · 250k+ Transactions · DuckDB Star Schema Engine · Real-Time OTIF Tracking", fontsize=8.5, color='#94a3b8', va='center')
-    ax_top.text(0.985, 0.65, "SPEND AUDITED: $248.5M | 25,000 ACTIVE POs", fontsize=8, fontweight='bold', color='#10b981', ha='right', va='center')
-    ax_top.text(0.985, 0.25, "DATA SOURCE: DUCKDB WAREHOUSE · ML MODEL: XGBOOST 0.912", fontsize=7.5, color='#64748b', ha='right', va='center')
+    ax_top.text(0.015, 0.65, "GLOBAL PROCUREMENT WAR ROOM | SUPPLIER PERFORMANCE & SPEND PULSE", fontsize=15, fontweight='bold', color='#38bdf8', va='center')
+    ax_top.text(0.015, 0.25, "DESIGN MOCKUP (matplotlib) — not a Power BI screen capture · Simulated PO data · Target layout for the Power BI build", fontsize=8.5, color='#94a3b8', va='center')
+    ax_top.text(0.985, 0.65, "SIMULATED SPEND: $248.5M | 25,000 MODELED POs", fontsize=8, fontweight='bold', color='#10b981', ha='right', va='center')
+    ax_top.text(0.985, 0.25, "DATA: SYNTHETIC (seed=42) · ML MODEL: XGBOOST 0.912 ON HELD-OUT SYNTHETIC", fontsize=7.5, color='#64748b', ha='right', va='center')
 
     # Global Slicer Pill Bar
     ax_slicer = fig1.add_axes([0.02, 0.865, 0.96, 0.048])
@@ -115,12 +115,12 @@ def render_procurement_suite():
         s.set_color('#1e293b')
         s.set_linewidth(1.2)
         
-    top_vendors = ['Apex Copper Global', 'Nippon Steel Corp', 'Infineon Micro', 'Eaton Internal Juarez', 'Schneider OEM', 'Siemens Energy', 'Hitachi Metals', 'Walsin Lihwa', 'STMicro OEM', 'ABB Power Comps']
+    top_vendors = ['Apex Copper Global', 'Kanto Steel Works', 'Rheinland Modules', 'Juarez Internal Transfer', 'Alpine Switchgear OEM', 'Baltic Energy Systems', 'Sakura Specialty Metals', 'Andes Copper', 'Formosa Semi OEM', 'Helvetia Power Components']
     otif_scores = [96.8, 95.4, 88.2, 98.1, 91.5, 94.0, 92.4, 89.1, 86.5, 93.2]
     otif_colors = ['#10b981' if o >= 95 else ('#f59e0b' if o >= 90 else '#ef4444') for o in otif_scores]
     
     bars_o = ax_otif.barh(top_vendors, otif_scores, color=otif_colors, height=0.52, edgecolor='#070a12')
-    ax_otif.axvline(95, color='#10b981', linestyle='--', lw=1.5, label='95% Eaton SLA Target')
+    ax_otif.axvline(95, color='#10b981', linestyle='--', lw=1.5, label='95% SLA Target')
     ax_otif.set_title("Top 10 Tier-1 Supplier OTIF Compliance (%) | Vendor Scorecard", fontsize=10.5, fontweight='bold', color='#f8fafc', loc='left', pad=10)
     ax_otif.set_xlabel("On-Time In-Full Rate (%)", fontsize=8.5, color='#94a3b8')
     ax_otif.set_xlim(80, 102)
@@ -132,7 +132,7 @@ def render_procurement_suite():
         w = b.get_width()
         ax_otif.text(w + 0.5, b.get_y() + b.get_height()/2, f"{w:.1f}%", va='center', color='#f8fafc', fontsize=7.5, fontweight='bold')
 
-    # Bottom Table: Real-Time High Delay Risk PO Sentry Table
+    # Bottom Table: Modeled High Delay Risk PO Sentry Table
     ax_tbl = fig1.add_axes([0.02, 0.04, 0.96, 0.28])
     ax_tbl.set_facecolor('#0f172a')
     ax_tbl.axis('off')
@@ -148,10 +148,10 @@ def render_procurement_suite():
     ax_tbl.plot([0.015, 0.985], [0.70, 0.70], color='#1e293b', lw=1, transform=ax_tbl.transAxes)
     
     sample_pos = [
-        ("PO-2026-8819", "Infineon Microelectronics", "Silicon IGBT Modules", "Pune Plant", "$480,000", "45 Days", "+14 Days Delay", "Port Congestion (Rotterdam)", "AIR EXPEDITE", "#ef4444"),
-        ("PO-2026-9042", "Walsin Lihwa Copper", "Oxygen-Free Copper Rod", "Shanghai Plant", "$920,000", "28 Days", "+8 Days Delay", "Raw Material Shortage", "DUAL-SOURCE", "#ef4444"),
-        ("PO-2026-7731", "Nippon Steel Corp", "Electrical Steel Coils", "Houston Facility", "$1,250,000", "60 Days", "+2 Days (On-Track)", "Customs Processing", "NOMINAL", "#10b981"),
-        ("PO-2026-6512", "STMicroelectronics", "Gate Driver Semiconductors", "Stuttgart Hub", "$310,000", "35 Days", "+11 Days Delay", "High Single-Vendor Load", "REALLOCATE", "#f59e0b"),
+        ("PO-2026-8819", "Rheinland Power Modules", "Silicon IGBT Modules", "Pune Plant", "$480,000", "45 Days", "+14 Days Delay", "Port Congestion (Rotterdam)", "AIR EXPEDITE", "#ef4444"),
+        ("PO-2026-9042", "Andes Copper Mining", "Oxygen-Free Copper Rod", "Shanghai Plant", "$920,000", "28 Days", "+8 Days Delay", "Raw Material Shortage", "DUAL-SOURCE", "#ef4444"),
+        ("PO-2026-7731", "Kanto Steel Works", "Electrical Steel Coils", "Houston Facility", "$1,250,000", "60 Days", "+2 Days (On-Track)", "Customs Processing", "NOMINAL", "#10b981"),
+        ("PO-2026-6512", "Formosa Microelectronics", "Gate Driver Semiconductors", "Stuttgart Hub", "$310,000", "35 Days", "+11 Days Delay", "High Single-Vendor Load", "REALLOCATE", "#f59e0b"),
         ("PO-2026-5409", "Apex Copper Global", "Copper Busbars 50mm", "Juarez Plant", "$640,000", "21 Days", "0 Days (On-Time)", "Direct Rail Corridor", "MONITOR", "#10b981")
     ]
     
@@ -171,7 +171,7 @@ def render_procurement_suite():
         ax_tbl.plot([0.015, 0.985], [y_pos - 0.035, y_pos - 0.035], color='#1e293b', lw=0.5, alpha=0.5, transform=ax_tbl.transAxes)
         y_pos -= 0.11
 
-    p1_out = "powerbi/screenshots/page1_procurement_command_center.png"
+    p1_out = "powerbi/mockups/page1_procurement_command_center.png"
     plt.savefig(p1_out, facecolor=fig1.get_facecolor(), bbox_inches='tight')
     plt.close()
     print(f"  [OK] Rendered Procurement War Room (Page 1): {p1_out}")
@@ -188,7 +188,7 @@ def render_procurement_suite():
     r_top2 = patches.FancyBboxPatch((0, 0), 1, 1, boxstyle="round,pad=0.015", fc="#0f172a", ec="#1e293b", lw=1.5, transform=ax_top2.transAxes)
     ax_top2.add_patch(r_top2)
     ax_top2.text(0.015, 0.65, "PREDICTIVE ML DELAY RISK & SHAP ROOT-CAUSE DIAGNOSTICS", fontsize=15, fontweight='bold', color='#38bdf8', va='center')
-    ax_top2.text(0.015, 0.25, "XGBoost Binary Classifier · SHAP TreeExplainer Attribution · Dual-Sourcing Allocation Frontier · Cross-Validation Benchmark", fontsize=8.5, color='#94a3b8', va='center')
+    ax_top2.text(0.015, 0.25, "DESIGN MOCKUP (matplotlib) — not a Power BI screen capture · XGBoost + SHAP on synthetic data", fontsize=8.5, color='#94a3b8', va='center')
     ax_top2.text(0.985, 0.50, "ROC-AUC: 0.912 | F1-SCORE: 0.864 | 5-FOLD CV VALIDATED", fontsize=8.5, fontweight='bold', color='#10b981', ha='right', va='center')
 
     # Chart 1 Left: SHAP Feature Importance Waterfall Bar
@@ -298,7 +298,7 @@ def render_procurement_suite():
     ax_dual.legend(loc='upper center', fontsize=7.5, facecolor='#0f172a', edgecolor='#1e293b')
     ax_dual.grid(color='#1e293b', linestyle='--', alpha=0.7)
 
-    p2_out = "powerbi/screenshots/page2_ml_delay_shap_diagnostics.png"
+    p2_out = "powerbi/mockups/page2_ml_delay_shap_diagnostics.png"
     plt.savefig(p2_out, facecolor=fig2.get_facecolor(), bbox_inches='tight')
     plt.close()
     print(f"  [OK] Rendered ML Diagnostics (Page 2): {p2_out}")
@@ -315,7 +315,7 @@ def render_procurement_suite():
     r_top3 = patches.FancyBboxPatch((0, 0), 1, 1, boxstyle="round,pad=0.015", fc="#0f172a", ec="#1e293b", lw=1.5, transform=ax_top3.transAxes)
     ax_top3.add_patch(r_top3)
     ax_top3.text(0.015, 0.65, "MULTI-MODAL LOGISTICS CORRIDORS & SCOPE-3 CARBON ESG TRACKER", fontsize=15, fontweight='bold', color='#38bdf8', va='center')
-    ax_top3.text(0.015, 0.25, "Ocean vs Air vs Rail vs Road Transit Tradeoffs · Single-Source Supplier HHI Monopoly Concentration · Anomaly Spend Audit", fontsize=8.5, color='#94a3b8', va='center')
+    ax_top3.text(0.015, 0.25, "DESIGN MOCKUP (matplotlib) — not a Power BI screen capture · Freight mode tradeoffs · Simulated data", fontsize=8.5, color='#94a3b8', va='center')
     ax_top3.text(0.985, 0.50, "ANNUAL CO2 REDUCTION: -1,240 MT | ROGUE SPEND FLAGGED: $480k", fontsize=8.5, fontweight='bold', color='#10b981', ha='right', va='center')
 
     # Chart 1 Left: Multi-Modal Transit Cost vs Speed vs CO2 Bubble Matrix
@@ -401,7 +401,7 @@ def render_procurement_suite():
         ax_anom.plot([0.015, 0.985], [y_an - 0.035, y_an - 0.035], color='#1e293b', lw=0.5, alpha=0.5, transform=ax_anom.transAxes)
         y_an -= 0.14
 
-    p3_out = "powerbi/screenshots/page3_logistics_esg_dual_sourcing.png"
+    p3_out = "powerbi/mockups/page3_logistics_esg_dual_sourcing.png"
     plt.savefig(p3_out, facecolor=fig3.get_facecolor(), bbox_inches='tight')
     plt.close()
     print(f"  [OK] Rendered Logistics & ESG Matrix (Page 3): {p3_out}")

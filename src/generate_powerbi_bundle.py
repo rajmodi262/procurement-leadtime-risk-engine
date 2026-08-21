@@ -1,9 +1,9 @@
 """
 Enterprise Power BI Template & Dataset Bundle Builder for Global Procurement Analytics & Risk Engine.
 Generates:
-1. Eaton_Procurement_Risk_Platform.pbit (Power BI Template Archive)
-2. Eaton_Procurement_Project.pbip (Power BI Modern Project Format)
-3. Eaton_Procurement_DataModel.xlsx (Pre-loaded Star Schema Excel Model with 25,000+ POs)
+1. Procurement_Risk_Platform.pbit (Power BI Template Archive)
+2. Procurement_Project.pbip (Power BI Modern Project Format)
+3. Procurement_DataModel.xlsx (Pre-loaded Star Schema Excel Model with 25,000+ POs)
 """
 
 import os
@@ -26,7 +26,7 @@ def create_procurement_bundle():
     df_suppliers, df_parts, df_orders = generate_procurement_dataset(num_pos=25000, seed=42)
     
     # 1. Pre-Packaged Excel Star Schema Model
-    excel_path = "powerbi/Eaton_Procurement_DataModel.xlsx"
+    excel_path = "powerbi/Procurement_DataModel.xlsx"
     with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
         df_orders.to_excel(writer, sheet_name="fact_purchase_orders", index=False)
         df_suppliers.to_excel(writer, sheet_name="dim_supplier", index=False)
@@ -35,7 +35,7 @@ def create_procurement_bundle():
 
     # 2. Tabular Model Schema (BIM)
     data_model_schema = {
-        "name": "Eaton_Procurement_DataModel",
+        "name": "Procurement_DataModel",
         "compatibilityLevel": 1550,
         "model": {
             "culture": "en-US",
@@ -117,7 +117,7 @@ def create_procurement_bundle():
     }
 
     # 4. Pack into .pbit
-    pbit_path = "powerbi/Eaton_Procurement_Risk_Platform.pbit"
+    pbit_path = "powerbi/Procurement_Risk_Platform.pbit"
     content_types_xml = """<?xml version="1.0" encoding="utf-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="json" ContentType="" />
@@ -138,17 +138,17 @@ def create_procurement_bundle():
     print(f"  [OK] Assembled Power BI Template File (.pbit): {pbit_path}")
 
     # 5. Build .pbip Structure
-    pbip_dir = "powerbi/Eaton_Procurement_Project.pbip"
-    os.makedirs(f"{pbip_dir}/Eaton_Procurement.Report", exist_ok=True)
-    os.makedirs(f"{pbip_dir}/Eaton_Procurement.Dataset", exist_ok=True)
+    pbip_dir = "powerbi/Procurement_Project.pbip"
+    os.makedirs(f"{pbip_dir}/Procurement.Report", exist_ok=True)
+    os.makedirs(f"{pbip_dir}/Procurement.Dataset", exist_ok=True)
     
     with open(f"{pbip_dir}/definition.pbip", "w") as f:
-        json.dump({"version": "1.0", "artifacts": [{"report": {"path": "Eaton_Procurement.Report"}}]}, f, indent=2)
+        json.dump({"version": "1.0", "artifacts": [{"report": {"path": "Procurement.Report"}}]}, f, indent=2)
         
-    with open(f"{pbip_dir}/Eaton_Procurement.Dataset/model.bim", "w") as f:
+    with open(f"{pbip_dir}/Procurement.Dataset/model.bim", "w") as f:
         json.dump(data_model_schema, f, indent=2)
         
-    with open(f"{pbip_dir}/Eaton_Procurement.Report/report.json", "w") as f:
+    with open(f"{pbip_dir}/Procurement.Report/report.json", "w") as f:
         json.dump(report_layout, f, indent=2)
         
     print(f"  [OK] Created Modern Power BI Project Format (.pbip): {pbip_dir}")
