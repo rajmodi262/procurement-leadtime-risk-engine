@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  procurement-ai-platform:
+    build: .
+    container_name: eaton_procurement_risk_platform
+    ports:
+      - "8501:8501"  # Streamlit UI
+      - "8000:8000"  # FastAPI REST API
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1

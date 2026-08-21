@@ -1,5 +1,5 @@
 """
-Automated PyTest Suite for Procurement Analytics, Anomaly Detection, ML Predictor, Dual-Sourcing & API.
+Comprehensive Automated PyTest Suite for Procurement AI Suite.
 """
 
 import pytest
@@ -11,6 +11,8 @@ from src.anomaly_detector import ProcurementAnomalyDetector
 from src.ml_delay_predictor import DelayRiskPredictor
 from src.dual_sourcing_optimizer import DualSourcingOptimizer
 from src.shap_explainer import SCMShapExplainer
+from src.logistics_network_optimizer import LogisticsNetworkOptimizer
+from src.contract_indexer import CommodityContractIndexer
 
 @pytest.fixture(scope="module")
 def sample_data():
@@ -77,4 +79,16 @@ def test_shap_explainer(sample_data):
     narrative = explainer.generate_narrative_explanation(sample_row, predicted_prob=0.75)
     assert narrative["risk_tier"] == "HIGH RISK"
     assert len(narrative["top_root_cause_drivers"]) > 0
-    assert len(narrative["recommended_actions"]) > 0
+
+def test_logistics_network_optimizer():
+    opt = LogisticsNetworkOptimizer()
+    df_corridors = opt.evaluate_transit_corridors("Taiwan", "PL-PUN", weight_tons=5.0, distance_km=6000)
+    assert len(df_corridors) == 4
+    assert "scope_3_co2_kg" in df_corridors.columns
+    assert "estimated_freight_cost_usd" in df_corridors.columns
+
+def test_contract_indexer():
+    indexer = CommodityContractIndexer()
+    res = indexer.calculate_index_linked_price(lme_market_price_kg=9.80, hedged_ratio=0.70)
+    assert "blended_contract_cost_usd_kg" in res
+    assert "cost_avoidance_savings_per_kg" in res

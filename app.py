@@ -13,6 +13,9 @@ from src.anomaly_detector import ProcurementAnomalyDetector
 from src.ml_delay_predictor import DelayRiskPredictor
 from src.shap_explainer import SCMShapExplainer
 from src.dual_sourcing_optimizer import DualSourcingOptimizer
+from src.logistics_network_optimizer import LogisticsNetworkOptimizer
+from src.contract_indexer import CommodityContractIndexer
+from src.model_tuning import SCMModelBenchmark
 
 st.set_page_config(
     page_title="Eaton Global Procurement & Risk Platform",
@@ -46,6 +49,9 @@ def train_model(df):
 predictor, ml_metrics = train_model(df_pos)
 explainer = SCMShapExplainer(predictor)
 dual_optimizer = DualSourcingOptimizer()
+logistics_opt = LogisticsNetworkOptimizer()
+contract_indexer = CommodityContractIndexer()
+model_benchmark = SCMModelBenchmark()
 analytics = ProcurementAnalyticsEngine(df_pos, df_suppliers)
 anomaly_detector = ProcurementAnomalyDetector()
 df_anomalies = anomaly_detector.fit_detect(df_pos)
@@ -66,12 +72,13 @@ st.title("🌐 Global Procurement & Predictive Lead-Time Risk Platform")
 st.markdown("**Strategic Spend Analytics** · OTIF & PPV Tracking · Anomaly Detection · XGBoost Delay Risk Forecasting & Dual Sourcing")
 st.markdown("---")
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📊 Executive Spend & OTIF Scorecard",
     "🗺️ Supplier Vulnerability & HHI Matrix",
-    "🤖 Real-Time PO Delay Risk Predictor (SHAP)",
-    "⚖️ Dual-Sourcing Allocation Optimizer",
-    "🚨 Price & Lead-Time Anomaly Auditor"
+    "🤖 Real-Time PO Delay Risk (SHAP)",
+    "⚖️ Dual-Sourcing Optimizer",
+    "🚢 Freight Logistics & Scope-3 Carbon",
+    "🚨 Anomaly Auditor & Model Benchmark"
 ])
 
 with tab1:
@@ -123,14 +130,10 @@ with tab2:
         template="plotly_dark", color_discrete_map={True: "#f85149", False: "#56d364"}
     )
     st.plotly_chart(fig_vendor, use_container_width=True)
-    
-    st.subheader("Supplier Scorecard Detail")
     st.dataframe(df_scorecard, use_container_width=True)
 
 with tab3:
     st.subheader("AI Delay Risk Predictor (XGBoost + SHAP Root-Cause Diagnostics)")
-    st.markdown("Score any new incoming Purchase Order at creation time to evaluate the probability of factory delivery delay and view AI root-cause explanations.")
-    
     with st.form("po_scoring_form"):
         fc1, fc2, fc3 = st.columns(3)
         with fc1:
@@ -164,32 +167,21 @@ with tab3:
         scored_po = predictor.predict_delay_risk(test_df)
         prob = scored_po["predicted_delay_probability"].values[0]
         tier = scored_po["risk_tier"].values[0]
-        
         narrative = explainer.generate_narrative_explanation(pd.Series(test_dict), prob)
         
         r1, r2 = st.columns([1, 2])
         with r1:
             st.metric("Predicted Delay Probability", f"{prob*100:.1f}%", tier, delta_color="inverse" if prob >= 0.40 else "normal")
         with r2:
-            if prob >= 0.70:
-                st.error(f"🚨 **High Risk Alert**: {tier}")
-            elif prob >= 0.40:
-                st.warning(f"⚠️ **Moderate Risk Alert**: {tier}")
-            else:
-                st.success(f"✅ **Low Delay Risk**: {tier}")
-                
             st.markdown("#### 🔍 SHAP Key Root-Cause Drivers:")
             for d in narrative["top_root_cause_drivers"]:
                 st.markdown(f"- {d}")
-                
             st.markdown("#### 📋 Recommended Mitigations:")
             for a in narrative["recommended_actions"]:
                 st.markdown(f"- **{a}**")
 
 with tab4:
     st.subheader("⚖️ Dual-Sourcing Allocation Optimizer")
-    st.markdown("Optimize order allocation split across primary (cost-effective) and secondary (high-reliability) suppliers to balance unit price and line-stoppage risk.")
-    
     ds_c1, ds_c2 = st.columns(2)
     with ds_c1:
         st.markdown("##### Primary Supplier (Low Cost / Higher Risk)")
@@ -201,14 +193,8 @@ with tab4:
         s_otif = st.slider("Secondary OTIF Compliance (%)", 50.0, 99.0, 96.0)
         
     tot_qty = st.number_input("Total Purchase Order Quantity", value=10000, step=1000)
+    ds_res = dual_optimizer.optimize_allocation(primary_cost=p_cost, primary_otif=p_otif, secondary_cost=s_cost, secondary_otif=s_otif, total_order_qty=tot_qty)
     
-    ds_res = dual_optimizer.optimize_allocation(
-        primary_cost=p_cost, primary_otif=p_otif,
-        secondary_cost=s_cost, secondary_otif=s_otif,
-        total_order_qty=tot_qty
-    )
-    
-    st.markdown("###")
     r1, r2, r3 = st.columns(3)
     with r1:
         st.metric("Primary Supplier Split", f"{ds_res['primary_allocation_pct']}%", f"{ds_res['primary_order_units']:,.0f} Units")
@@ -218,13 +204,35 @@ with tab4:
         st.metric("Total Expected Landed Cost", f"${ds_res['total_expected_landed_cost_usd']:,.0f}", ds_res["risk_mitigation_strategy"])
 
 with tab5:
-    st.subheader("🚨 Isolation Forest Anomaly Detection Auditor")
-    st.markdown("Identifies outlier PO prices, contract unit price deviations, and rogue delivery bottlenecks.")
+    st.subheader("🚢 Global Freight Logistics & Scope-3 Carbon Footprint")
+    st.markdown("Multi-modal transit corridor evaluator (Ocean vs Air vs Road vs Rail) balancing transit time, freight cost, and Scope-3 $CO_2$ emissions.")
     
+    lc1, lc2 = st.columns(2)
+    with lc1:
+        cargo_tons = st.slider("Cargo Shipment Weight (Metric Tons)", 1.0, 100.0, 15.0)
+    with lc2:
+        transit_dist = st.slider("Transit Distance (km)", 500, 18000, 7500)
+        
+    df_corridors = logistics_opt.evaluate_transit_corridors("Taiwan", "PL-PUN", weight_tons=cargo_tons, distance_km=transit_dist)
+    st.dataframe(df_corridors, use_container_width=True)
+    
+    fig_esg = px.bar(
+        df_corridors, x="freight_mode", y="scope_3_co2_kg",
+        color="scope_3_co2_kg", color_continuous_scale="Reds",
+        labels={"freight_mode": "Transit Mode", "scope_3_co2_kg": "Scope-3 CO2 (kg)"},
+        template="plotly_dark", title="Carbon Footprint Comparison by Freight Corridor"
+    )
+    st.plotly_chart(fig_esg, use_container_width=True)
+
+with tab6:
+    st.subheader("🚨 Price & Lead-Time Anomaly Auditor & ML Model Benchmark")
     flagged = anomaly_detector.get_flagged_anomalies(df_anomalies)
     st.warning(f"Audited {len(df_pos):,} Purchase Orders. **{len(flagged):,} anomalies flagged** for procurement auditing.")
+    st.dataframe(flagged[["po_number", "supplier_name", "commodity_group", "po_unit_price_usd", "standard_unit_cost_usd", "price_variance_ratio", "days_delayed", "anomaly_score"]].head(50), use_container_width=True)
     
-    st.dataframe(
-        flagged[["po_number", "supplier_name", "commodity_group", "po_unit_price_usd", "standard_unit_cost_usd", "price_variance_ratio", "days_delayed", "anomaly_score"]].head(100),
-        use_container_width=True
-    )
+    st.markdown("---")
+    st.subheader("🤖 5-Fold Stratified Cross-Validation Benchmark")
+    if st.button("Run 5-Fold Model Benchmark (XGBoost vs Baselines)"):
+        with st.spinner("Benchmarking classifiers..."):
+            df_bench = model_benchmark.benchmark_models(df_pos)
+            st.dataframe(df_bench, use_container_width=True)
