@@ -1,5 +1,5 @@
 """
-Automated PyTest Suite for Procurement Analytics, Anomaly Detection, and ML Predictor.
+Automated PyTest Suite for Procurement Analytics, Anomaly Detection, ML Predictor, Dual-Sourcing & API.
 """
 
 import pytest
@@ -9,6 +9,8 @@ from src.data_generator import generate_procurement_dataset
 from src.procurement_analytics import ProcurementAnalyticsEngine
 from src.anomaly_detector import ProcurementAnomalyDetector
 from src.ml_delay_predictor import DelayRiskPredictor
+from src.dual_sourcing_optimizer import DualSourcingOptimizer
+from src.shap_explainer import SCMShapExplainer
 
 @pytest.fixture(scope="module")
 def sample_data():
@@ -49,8 +51,30 @@ def test_ml_delay_predictor(sample_data):
     metrics = predictor.train(df_pos)
     assert metrics["roc_auc"] > 0.60
     
-    # Test single PO inference
     sample_po = df_pos.iloc[0:2]
     scored = predictor.predict_delay_risk(sample_po)
     assert "predicted_delay_probability" in scored.columns
     assert "risk_tier" in scored.columns
+
+def test_dual_sourcing_optimizer():
+    optimizer = DualSourcingOptimizer()
+    res = optimizer.optimize_allocation(
+        primary_cost=40.0, primary_otif=80.0,
+        secondary_cost=45.0, secondary_otif=95.0,
+        total_order_qty=10000.0
+    )
+    assert "primary_allocation_pct" in res
+    assert "secondary_allocation_pct" in res
+    assert res["primary_allocation_pct"] + res["secondary_allocation_pct"] == 100.0
+
+def test_shap_explainer(sample_data):
+    df_suppliers, df_parts, df_pos = sample_data
+    predictor = DelayRiskPredictor(random_state=42)
+    predictor.train(df_pos)
+    explainer = SCMShapExplainer(predictor)
+    
+    sample_row = df_pos.iloc[0]
+    narrative = explainer.generate_narrative_explanation(sample_row, predicted_prob=0.75)
+    assert narrative["risk_tier"] == "HIGH RISK"
+    assert len(narrative["top_root_cause_drivers"]) > 0
+    assert len(narrative["recommended_actions"]) > 0

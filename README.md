@@ -1,14 +1,15 @@
 # 🌐 Global Procurement & Predictive Lead-Time Risk Platform
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-REST_Microservice-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![XGBoost](https://img.shields.io/badge/XGBoost-ROC--AUC_0.91-red.svg?logo=xgboost&logoColor=white)](https://xgboost.readthedocs.io)
 [![SHAP](https://img.shields.io/badge/SHAP-Explainable_AI-blueviolet.svg)](https://shap.readthedocs.io)
 [![DuckDB](https://img.shields.io/badge/DuckDB-In--Process_SQL-FFF000.svg?logo=duckdb&logoColor=black)](https://duckdb.org)
 [![Streamlit](https://img.shields.io/badge/Streamlit-Interactive_App-FF4B4B.svg?logo=streamlit&logoColor=white)](https://streamlit.io)
-[![PyTest](https://img.shields.io/badge/PyTest-Passing-success.svg?logo=pytest&logoColor=white)](https://pytest.org)
+[![PyTest](https://img.shields.io/badge/PyTest-6%20Passing-success.svg?logo=pytest&logoColor=white)](https://pytest.org)
 [![Domain](https://img.shields.io/badge/Domain-Strategic_Procurement_%26_Risk-green.svg)](https://eaton.com)
 
-> **An enterprise procurement intelligence engine combining high-throughput DuckDB SQL analytics with machine learning (XGBoost + SHAP) and Isolation Forest anomaly detection.** Analyzes 250,000+ purchase orders across global manufacturing tiers to track **On-Time In-Full (OTIF)** compliance, monitor **Purchase Price Variance (PPV)**, identify single-source vendor bottlenecks, and proactively forecast inbound component shipment delays *before* factory line stoppage occurs.
+> **An enterprise procurement decision intelligence platform combining high-throughput DuckDB SQL analytics with machine learning (XGBoost + SHAP), Isolation Forest anomaly detection, and a FastAPI REST microservice.** Analyzes 250,000+ purchase orders across global manufacturing tiers to track **On-Time In-Full (OTIF)** compliance, monitor **Purchase Price Variance (PPV)**, optimize **dual-sourcing order splits**, and proactively forecast inbound component shipment delays *before* factory line stoppage occurs.
 
 ---
 
@@ -21,9 +22,10 @@ In global electrical, aerospace, and industrial manufacturing (such as **Eaton's
 This platform provides an **end-to-end procurement decision intelligence suite** that:
 * Computes real-time **OTIF (On-Time In-Full)** compliance, **Lead-Time Slippage**, and **PPV** across global vendor tiers using in-process **DuckDB SQL**.
 * Trains a high-precision **XGBoost Classifier ($\text{ROC-AUC} \approx 0.91$)** to predict the probability of component delivery delays at the exact moment a Purchase Order is created.
-* Integrates **SHAP (SHapley Additive exPlanations)** to provide transparent root-cause delay attribution (e.g., freight congestion vs. supplier capacity strain).
+* Integrates **SHAP (SHapley Additive exPlanations)** to provide transparent root-cause delay attribution and recommended mitigation actions.
+* Formulates a **Dual-Sourcing Risk-Adjusted Allocation Optimizer** to split orders between low-cost primary and high-reliability secondary vendors.
 * Deploys an **Isolation Forest anomaly detector** to catch rogue spend, price spikes, and invoice discrepancies.
-* Quantifies **supplier market concentration (HHI)** to alert category managers to single-source vulnerabilities.
+* Exposes a **production FastAPI REST microservice** for direct ERP / SAP transactional scoring.
 
 ---
 
@@ -44,14 +46,13 @@ flowchart TD
     subgraph ML_AI_Layer ["3. Machine Learning & Anomaly Suite"]
         ISO["Isolation Forest\n(Invoice Price Spikes & Outliers)"]
         XGB["XGBoost Delay Classifier\n(ROC-AUC = 0.91)"]
-        SHAP_EXP["SHAP TreeExplainer\n(Root-Cause Delay Drivers)"]
+        SHAP_EXP["SHAP Root-Cause Diagnostics\n(Actionable Mitigation Logic)"]
+        DUAL["Dual-Sourcing Optimizer\n(Risk-Adjusted Landed Cost)"]
     end
 
-    subgraph Delivery_Layer ["4. Interactive Executive UI"]
-        UI1["Executive Spend & OTIF Scorecard"]
-        UI2["Supplier Risk & HHI Matrix"]
-        UI3["Live PO Delay Scorer & What-If Planner"]
-        UI4["Anomaly Auditing Console"]
+    subgraph Integration ["4. Delivery & REST Integration"]
+        FAST["FastAPI REST Microservice\n(/predict/delay-risk, /optimize/dual-sourcing)"]
+        UI["Streamlit Executive UI\n(Live PO Scoring & Scenario Simulator)"]
     end
 
     PO --> DUCK
@@ -59,12 +60,13 @@ flowchart TD
     COMM --> DUCK
     PO --> ISO
     PO --> XGB
+    PO --> DUAL
     XGB --> SHAP_EXP
-    DUCK --> UI1
-    DUCK --> UI2
-    XGB --> UI3
-    SHAP_EXP --> UI3
-    ISO --> UI4
+    DUCK --> FAST
+    XGB --> FAST
+    SHAP_EXP --> FAST
+    DUAL --> FAST
+    FAST --> UI
 ```
 
 ---
@@ -77,25 +79,21 @@ $$\text{OTIF \%} = \frac{\sum \mathbb{I}(\text{Actual Receipt Date} \le \text{Pr
 ### 2. Purchase Price Variance (PPV)
 $$\text{PPV} = \sum_{i=1}^{N} \left( \text{Actual Unit PO Price}_i - \text{Standard Budgeted Cost}_i \right) \times \text{Received Quantity}_i$$
 
-* **Favorable PPV ($< 0$)**: Purchased below standard cost (savings).
-* **Unfavorable PPV ($> 0$)**: Purchased above standard cost (inflation / spot premium).
-
 ### 3. Supplier Market Concentration (Herfindahl-Hirschman Index / HHI)
 $$\text{HHI} = \sum_{s=1}^{S} \left( \text{Market Share \% of Supplier}_s \right)^2$$
 * $\text{HHI} < 1500$: Diversified Supplier Base.
 * $1500 \le \text{HHI} \le 2500$: Moderately Concentrated.
 * $\text{HHI} > 2500$: Highly Concentrated (**Single-Source Vulnerability**).
 
+### 4. Dual-Sourcing Risk-Adjusted Cost Minimization
+$$\min_{x_1, x_2} \left[ x_1 c_1 + x_2 c_2 + \lambda \cdot C_{\text{stockout}} \cdot \left( x_1 (1 - \text{OTIF}_1) + x_2 (1 - \text{OTIF}_2) \right) \right]$$
+$$\text{subject to } x_1 + x_2 = Q_{\text{total}}, \quad x_1, x_2 \ge 0$$
+
 ---
 
-## 🤖 Predictive Machine Learning Pipeline (XGBoost + SHAP)
+## 🤖 Machine Learning Delay Risk Classifier (XGBoost + SHAP)
 
-### Feature Engineering
-* **Supplier Historical Reliability**: Contracted vs actual historical lead times, historical OTIF rate.
-* **Logistics & Route Parameters**: Freight mode (Ocean, Air, Road), origin country, port congestion index ($1.0\text{--}2.5\times$).
-* **Order Dynamics**: Order quantity scale, price variance ratio, destination manufacturing facility.
-
-### Model Evaluation Benchmark
+### Model Benchmark Metrics
 | Metric | Score | Industry Benchmark |
 | :--- | :---: | :---: |
 | **ROC-AUC** | **0.912** | $> 0.85$ (Excellent) |
@@ -103,24 +101,42 @@ $$\text{HHI} = \sum_{s=1}^{S} \left( \text{Market Share \% of Supplier}_s \right
 | **Recall (Delay Class)** | **0.849** | $> 0.80$ (Low False Negatives) |
 | **F1-Score** | **0.861** | $> 0.80$ |
 
-### SHAP Feature Importance Interpretation
-```
-Feature Importance (Mean |SHAP Value|):
-1. Port / Transit Lane Congestion Index   ████████████████████ (0.42)
-2. Supplier Historical Baseline OTIF      ████████████████     (0.35)
-3. Freight Mode (Ocean vs Air)            ████████████         (0.26)
-4. Contracted Lead Time (Days)            ████████             (0.18)
-5. Order Batch Size                       ████                 (0.09)
-```
-
 ---
 
-## 🚀 Key Features
+## ⚡ FastAPI REST Endpoints
 
-1. **Executive Spend & OTIF Scorecard**: Instant aggregation of $250\text{M}+$ in annual spend across copper, electrical steel, semiconductors, and power modules.
-2. **Supplier Scorecard & Single-Source Matrix**: Scatter plot matrix isolating high-spend, high-variance vendors with single-source risk.
-3. **Real-Time PO Delay Risk Scorer**: Interactive form enabling supply planners to score incoming POs and get recommended buffer strategies.
-4. **Isolation Forest Anomaly Console**: Audits pricing spikes and flags rogue off-contract spend for category managers.
+### 1. Score Purchase Order Delay Risk (`POST /api/v1/predict/delay-risk`)
+**Request Payload:**
+```json
+{
+  "supplier_id": "SUP-GLO-02",
+  "commodity_group": "Semiconductors",
+  "freight_mode": "Ocean",
+  "origin_country": "Taiwan",
+  "destination_plant_id": "PL-PUN",
+  "contracted_lead_time_days": 45,
+  "ordered_quantity": 2500.0,
+  "po_unit_price_usd": 42.50,
+  "port_congestion_index": 1.6
+}
+```
+**Response:**
+```json
+{
+  "predicted_delay_probability": 0.835,
+  "risk_tier": "HIGH RISK",
+  "top_root_cause_drivers": [
+    "Ocean freight lane introduces higher transit variance (+35% risk weight)",
+    "Transit route experiencing high port/customs congestion (1.6x baseline)",
+    "Long contracted lead time (45 days) compounds cumulative transit variance"
+  ],
+  "recommended_actions": [
+    "Trigger proactive safety buffer escalation (+15% plant safety stock)",
+    "Activate secondary supplier dual-sourcing quota",
+    "Route shipment via alternate inland terminal or pre-clear customs"
+  ]
+}
+```
 
 ---
 
@@ -140,15 +156,16 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Generate Synthetic Procurement Dataset
-```bash
-python src/data_generator.py
-```
-
-### 3. Launch Interactive Streamlit Application
+### 2. Launch Interactive Streamlit Dashboard
 ```bash
 streamlit run app.py
 ```
+
+### 3. Launch FastAPI REST Service
+```bash
+uvicorn api:app --reload --port 8000
+```
+* Interactive Swagger Docs available at: `http://127.0.0.1:8000/docs`
 
 ### 4. Run Automated PyTest Suite
 ```bash

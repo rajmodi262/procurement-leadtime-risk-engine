@@ -11,6 +11,8 @@ from src.data_generator import generate_procurement_dataset
 from src.procurement_analytics import ProcurementAnalyticsEngine
 from src.anomaly_detector import ProcurementAnomalyDetector
 from src.ml_delay_predictor import DelayRiskPredictor
+from src.shap_explainer import SCMShapExplainer
+from src.dual_sourcing_optimizer import DualSourcingOptimizer
 
 st.set_page_config(
     page_title="Eaton Global Procurement & Risk Platform",
@@ -42,6 +44,8 @@ def train_model(df):
     return predictor, metrics
 
 predictor, ml_metrics = train_model(df_pos)
+explainer = SCMShapExplainer(predictor)
+dual_optimizer = DualSourcingOptimizer()
 analytics = ProcurementAnalyticsEngine(df_pos, df_suppliers)
 anomaly_detector = ProcurementAnomalyDetector()
 df_anomalies = anomaly_detector.fit_detect(df_pos)
@@ -55,17 +59,18 @@ selected_tiers = st.sidebar.multiselect("Supplier Tier", options=df_suppliers["t
 selected_commodities = st.sidebar.multiselect("Commodity Category", options=df_parts["commodity_group"].unique().tolist(), default=df_parts["commodity_group"].unique().tolist())
 
 st.sidebar.markdown("---")
-st.sidebar.info(f"🤖 **Predictive Model**: XGBoost\n* **ROC-AUC**: `{ml_metrics['roc_auc']}`\n* **F1-Score**: `{ml_metrics['f1_score']}`")
+st.sidebar.info(f"🤖 **Predictive Model**: XGBoost\n* **ROC-AUC**: `{ml_metrics['roc_auc']}`\n* **F1-Score**: `{ml_metrics['f1_score']}`\n* **API**: `FastAPI REST Live`")
 
 # Main Header
 st.title("🌐 Global Procurement & Predictive Lead-Time Risk Platform")
-st.markdown("**Strategic Spend Analytics** · OTIF & PPV Tracking · Anomaly Detection · XGBoost Delay Risk Forecasting")
+st.markdown("**Strategic Spend Analytics** · OTIF & PPV Tracking · Anomaly Detection · XGBoost Delay Risk Forecasting & Dual Sourcing")
 st.markdown("---")
 
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "📊 Executive Spend & OTIF Scorecard",
     "🗺️ Supplier Vulnerability & HHI Matrix",
-    "🤖 Real-Time PO Delay Risk Predictor",
+    "🤖 Real-Time PO Delay Risk Predictor (SHAP)",
+    "⚖️ Dual-Sourcing Allocation Optimizer",
     "🚨 Price & Lead-Time Anomaly Auditor"
 ])
 
@@ -123,8 +128,8 @@ with tab2:
     st.dataframe(df_scorecard, use_container_width=True)
 
 with tab3:
-    st.subheader("AI Delay Risk Predictor (XGBoost + SHAP Explainability)")
-    st.markdown("Score any new incoming Purchase Order at creation time to evaluate the probability of factory delivery delay.")
+    st.subheader("AI Delay Risk Predictor (XGBoost + SHAP Root-Cause Diagnostics)")
+    st.markdown("Score any new incoming Purchase Order at creation time to evaluate the probability of factory delivery delay and view AI root-cause explanations.")
     
     with st.form("po_scoring_form"):
         fc1, fc2, fc3 = st.columns(3)
@@ -135,15 +140,15 @@ with tab3:
             inp_freight = st.selectbox("Freight Mode", options=["Ocean", "Road Freight", "Air Express"])
             inp_plant = st.selectbox("Destination Plant", options=["PL-PUN (Pune)", "PL-TEX (Texas)", "PL-SHA (Shanghai)", "PL-STU (Stuttgart)", "PL-JUA (Juarez)"]).split(" ")[0]
         with fc3:
-            inp_lt = st.number_input("Contracted Lead Time (Days)", min_value=5, max_value=90, value=30)
-            inp_qty = st.number_input("Order Quantity", min_value=10, max_value=50000, value=1000)
-            inp_congestion = st.slider("Port / Route Congestion Index", min_value=1.0, max_value=2.5, value=1.2, step=0.1)
+            inp_lt = st.number_input("Contracted Lead Time (Days)", min_value=5, max_value=90, value=35)
+            inp_qty = st.number_input("Order Quantity", min_value=10, max_value=50000, value=2500)
+            inp_congestion = st.slider("Port / Route Congestion Index", min_value=1.0, max_value=2.5, value=1.4, step=0.1)
             
-        btn_score = st.form_submit_button("⚡ Predict Inbound Delay Probability")
+        btn_score = st.form_submit_button("⚡ Score Purchase Order Delay Probability")
         
     if btn_score:
         sup_country = df_suppliers.loc[df_suppliers["supplier_id"] == inp_supplier, "headquarters_country"].values[0]
-        test_df = pd.DataFrame([{
+        test_dict = {
             "supplier_id": inp_supplier,
             "commodity_group": inp_comm,
             "freight_mode": inp_freight,
@@ -153,24 +158,66 @@ with tab3:
             "ordered_quantity": float(inp_qty),
             "po_unit_price_usd": 25.0,
             "port_congestion_index": inp_congestion
-        }])
+        }
+        test_df = pd.DataFrame([test_dict])
         
         scored_po = predictor.predict_delay_risk(test_df)
         prob = scored_po["predicted_delay_probability"].values[0]
         tier = scored_po["risk_tier"].values[0]
+        
+        narrative = explainer.generate_narrative_explanation(pd.Series(test_dict), prob)
         
         r1, r2 = st.columns([1, 2])
         with r1:
             st.metric("Predicted Delay Probability", f"{prob*100:.1f}%", tier, delta_color="inverse" if prob >= 0.40 else "normal")
         with r2:
             if prob >= 0.70:
-                st.error(f"🚨 **High Risk Alert**: This PO has a **{prob*100:.1f}% risk of delay**. Recommendation: Trigger buffer stock escalation or switch freight lane to Air Express.")
+                st.error(f"🚨 **High Risk Alert**: {tier}")
             elif prob >= 0.40:
-                st.warning(f"⚠️ **Moderate Risk**: Probability of delay **{prob*100:.1f}%**. Monitor supplier dispatch closely.")
+                st.warning(f"⚠️ **Moderate Risk Alert**: {tier}")
             else:
-                st.success(f"✅ **Low Delay Risk**: Probability of delay **{prob*100:.1f}%**. On-time delivery expected.")
+                st.success(f"✅ **Low Delay Risk**: {tier}")
+                
+            st.markdown("#### 🔍 SHAP Key Root-Cause Drivers:")
+            for d in narrative["top_root_cause_drivers"]:
+                st.markdown(f"- {d}")
+                
+            st.markdown("#### 📋 Recommended Mitigations:")
+            for a in narrative["recommended_actions"]:
+                st.markdown(f"- **{a}**")
 
 with tab4:
+    st.subheader("⚖️ Dual-Sourcing Allocation Optimizer")
+    st.markdown("Optimize order allocation split across primary (cost-effective) and secondary (high-reliability) suppliers to balance unit price and line-stoppage risk.")
+    
+    ds_c1, ds_c2 = st.columns(2)
+    with ds_c1:
+        st.markdown("##### Primary Supplier (Low Cost / Higher Risk)")
+        p_cost = st.number_input("Primary Unit Cost ($)", value=42.50, step=1.0)
+        p_otif = st.slider("Primary OTIF Compliance (%)", 50.0, 99.0, 82.0)
+    with ds_c2:
+        st.markdown("##### Secondary Supplier (Higher Cost / High OTIF Backup)")
+        s_cost = st.number_input("Secondary Unit Cost ($)", value=46.00, step=1.0)
+        s_otif = st.slider("Secondary OTIF Compliance (%)", 50.0, 99.0, 96.0)
+        
+    tot_qty = st.number_input("Total Purchase Order Quantity", value=10000, step=1000)
+    
+    ds_res = dual_optimizer.optimize_allocation(
+        primary_cost=p_cost, primary_otif=p_otif,
+        secondary_cost=s_cost, secondary_otif=s_otif,
+        total_order_qty=tot_qty
+    )
+    
+    st.markdown("###")
+    r1, r2, r3 = st.columns(3)
+    with r1:
+        st.metric("Primary Supplier Split", f"{ds_res['primary_allocation_pct']}%", f"{ds_res['primary_order_units']:,.0f} Units")
+    with r2:
+        st.metric("Secondary Supplier Split", f"{ds_res['secondary_allocation_pct']}%", f"{ds_res['secondary_order_units']:,.0f} Units")
+    with r3:
+        st.metric("Total Expected Landed Cost", f"${ds_res['total_expected_landed_cost_usd']:,.0f}", ds_res["risk_mitigation_strategy"])
+
+with tab5:
     st.subheader("🚨 Isolation Forest Anomaly Detection Auditor")
     st.markdown("Identifies outlier PO prices, contract unit price deviations, and rogue delivery bottlenecks.")
     
