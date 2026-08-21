@@ -1,0 +1,48 @@
+{
+  "id": 0,
+  "resourcePackages": [],
+  "sections": [
+    {
+      "id": 0,
+      "name": "ReportSection_ProcurementCommand",
+      "displayName": "Global Procurement Command Center",
+      "filters": "[]",
+      "ordinal": 0,
+      "visualContainers": [
+        {
+          "x": 20,
+          "y": 20,
+          "z": 1000,
+          "width": 300,
+          "height": 140,
+          "config": "{\"name\": \"Card_Spend\", \"singleVisual\": {\"visualType\": \"card\", \"projections\": {\"Values\": [{\"queryRef\": \"fact_purchase_orders.Total Procurement Spend ($)\"}]}}}"
+        },
+        {
+          "x": 340,
+          "y": 20,
+          "z": 1000,
+          "width": 300,
+          "height": 140,
+          "config": "{\"name\": \"Card_OTIF\", \"singleVisual\": {\"visualType\": \"card\", \"projections\": {\"Values\": [{\"queryRef\": \"fact_purchase_orders.Supplier OTIF %\"}]}}}"
+        },
+        {
+          "x": 660,
+          "y": 20,
+          "z": 1000,
+          "width": 300,
+          "height": 140,
+          "config": "{\"name\": \"Card_PPV\", \"singleVisual\": {\"visualType\": \"card\", \"projections\": {\"Values\": [{\"queryRef\": \"fact_purchase_orders.Total Purchase Price Variance (PPV)\"}]}}}"
+        },
+        {
+          "x": 980,
+          "y": 20,
+          "z": 1000,
+          "width": 280,
+          "height": 140,
+          "config": "{\"name\": \"Card_Delayed\", \"singleVisual\": {\"visualType\": \"card\", \"projections\": {\"Values\": [{\"queryRef\": \"fact_purchase_orders.Delayed POs Count\"}]}}}"
+        }
+      ]
+    }
+  ],
+  "config": "{\"version\": \"5.50\", \"themeCollection\": {\"baseTheme\": {\"name\": \"CY24SU08\", \"version\": \"5.50\"}}}"
+}
