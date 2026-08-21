@@ -1,0 +1,254 @@
+{
+  "name": "Eaton_Procurement_DataModel",
+  "compatibilityLevel": 1550,
+  "model": {
+    "culture": "en-US",
+    "tables": [
+      {
+        "name": "dim_supplier",
+        "columns": [
+          {
+            "name": "supplier_id",
+            "dataType": "string"
+          },
+          {
+            "name": "supplier_name",
+            "dataType": "string"
+          },
+          {
+            "name": "tier_level",
+            "dataType": "string"
+          },
+          {
+            "name": "commodity_category",
+            "dataType": "string"
+          },
+          {
+            "name": "headquarters_country",
+            "dataType": "string"
+          },
+          {
+            "name": "contract_incoterms",
+            "dataType": "string"
+          },
+          {
+            "name": "payment_terms_days",
+            "dataType": "double"
+          },
+          {
+            "name": "credit_rating",
+            "dataType": "string"
+          },
+          {
+            "name": "is_single_source",
+            "dataType": "double"
+          },
+          {
+            "name": "base_otif",
+            "dataType": "double"
+          },
+          {
+            "name": "base_lead_time",
+            "dataType": "double"
+          }
+        ]
+      },
+      {
+        "name": "dim_commodity_part",
+        "columns": [
+          {
+            "name": "part_number",
+            "dataType": "string"
+          },
+          {
+            "name": "part_description",
+            "dataType": "string"
+          },
+          {
+            "name": "commodity_group",
+            "dataType": "string"
+          },
+          {
+            "name": "standard_cost_usd",
+            "dataType": "double"
+          },
+          {
+            "name": "unit_of_measure",
+            "dataType": "string"
+          },
+          {
+            "name": "criticality_tier",
+            "dataType": "string"
+          }
+        ]
+      },
+      {
+        "name": "fact_purchase_orders",
+        "columns": [
+          {
+            "name": "po_number",
+            "dataType": "string"
+          },
+          {
+            "name": "po_line_item",
+            "dataType": "double"
+          },
+          {
+            "name": "supplier_id",
+            "dataType": "string"
+          },
+          {
+            "name": "supplier_name",
+            "dataType": "string"
+          },
+          {
+            "name": "tier_level",
+            "dataType": "string"
+          },
+          {
+            "name": "is_single_source",
+            "dataType": "double"
+          },
+          {
+            "name": "part_number",
+            "dataType": "string"
+          },
+          {
+            "name": "part_description",
+            "dataType": "string"
+          },
+          {
+            "name": "commodity_group",
+            "dataType": "string"
+          },
+          {
+            "name": "destination_plant_id",
+            "dataType": "string"
+          },
+          {
+            "name": "po_creation_date",
+            "dataType": "string"
+          },
+          {
+            "name": "promised_delivery_date",
+            "dataType": "string"
+          },
+          {
+            "name": "actual_receipt_date",
+            "dataType": "string"
+          },
+          {
+            "name": "contracted_lead_time_days",
+            "dataType": "double"
+          },
+          {
+            "name": "actual_lead_time_days",
+            "dataType": "double"
+          },
+          {
+            "name": "ordered_quantity",
+            "dataType": "double"
+          },
+          {
+            "name": "received_quantity",
+            "dataType": "double"
+          },
+          {
+            "name": "po_unit_price_usd",
+            "dataType": "double"
+          },
+          {
+            "name": "standard_unit_cost_usd",
+            "dataType": "double"
+          },
+          {
+            "name": "total_spend_usd",
+            "dataType": "double"
+          },
+          {
+            "name": "purchase_price_variance_usd",
+            "dataType": "double"
+          },
+          {
+            "name": "freight_mode",
+            "dataType": "string"
+          },
+          {
+            "name": "origin_country",
+            "dataType": "string"
+          },
+          {
+            "name": "transit_lane",
+            "dataType": "string"
+          },
+          {
+            "name": "port_congestion_index",
+            "dataType": "double"
+          },
+          {
+            "name": "is_on_time",
+            "dataType": "double"
+          },
+          {
+            "name": "is_in_full",
+            "dataType": "double"
+          },
+          {
+            "name": "is_otif",
+            "dataType": "double"
+          },
+          {
+            "name": "is_delayed",
+            "dataType": "double"
+          },
+          {
+            "name": "days_delayed",
+            "dataType": "double"
+          },
+          {
+            "name": "anomaly_flag",
+            "dataType": "double"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Total Procurement Spend ($)",
+            "expression": "SUM(fact_purchase_orders[total_po_value_usd])",
+            "formatString": "\\$#,0"
+          },
+          {
+            "name": "Supplier OTIF %",
+            "expression": "DIVIDE(CALCULATE(COUNTROWS(fact_purchase_orders), fact_purchase_orders[is_otif] = TRUE), COUNTROWS(fact_purchase_orders), 0)",
+            "formatString": "0.0%"
+          },
+          {
+            "name": "Total Purchase Price Variance (PPV)",
+            "expression": "SUM(fact_purchase_orders[purchase_price_variance_usd])",
+            "formatString": "\\$#,0"
+          },
+          {
+            "name": "Delayed POs Count",
+            "expression": "CALCULATE(COUNTROWS(fact_purchase_orders), fact_purchase_orders[is_delayed] = TRUE)",
+            "formatString": "#,0"
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "rel_supplier",
+        "fromTable": "fact_purchase_orders",
+        "fromColumn": "supplier_id",
+        "toTable": "dim_supplier",
+        "toColumn": "supplier_id"
+      },
+      {
+        "name": "rel_part",
+        "fromTable": "fact_purchase_orders",
+        "fromColumn": "part_number",
+        "toTable": "dim_commodity_part",
+        "toColumn": "part_number"
+      }
+    ]
+  }
+}
