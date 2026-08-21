@@ -18,7 +18,7 @@ from src.contract_indexer import CommodityContractIndexer
 from src.model_tuning import SCMModelBenchmark
 
 st.set_page_config(
-    page_title="Eaton Global Procurement & Risk Platform",
+    page_title="Global Procurement & Risk Platform",
     page_icon="🌐",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -57,7 +57,6 @@ anomaly_detector = ProcurementAnomalyDetector()
 df_anomalies = anomaly_detector.fit_detect(df_pos)
 
 # Sidebar
-st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Eaton_Corporation_logo.svg/320px-Eaton_Corporation_logo.svg.png", width=160)
 st.sidebar.title("Procurement AI Suite")
 st.sidebar.markdown("---")
 
