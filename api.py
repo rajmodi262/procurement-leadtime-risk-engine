@@ -15,7 +15,7 @@ from src.shap_explainer import SCMShapExplainer
 from src.dual_sourcing_optimizer import DualSourcingOptimizer
 
 app = FastAPI(
-    title="Eaton Global Procurement & Delay Risk API",
+    title="Global Procurement & Delay Risk API",
     description="Enterprise REST API for Supplier Performance, OTIF/PPV KPIs, and Inbound Delay Forecasting.",
     version="1.2.0"
 )
@@ -48,7 +48,7 @@ class DualSourcingRequest(BaseModel):
 
 @app.get("/", tags=["Health"])
 def health_check():
-    return {"status": "ONLINE", "service": "Eaton SCM Procurement Analytics Engine", "version": "1.2.0"}
+    return {"status": "ONLINE", "service": "SCM Procurement Analytics Engine", "version": "1.2.0"}
 
 @app.get("/api/v1/kpis/executive-summary", tags=["Analytics"])
 def get_executive_kpis():

@@ -7,15 +7,32 @@
 [![DuckDB](https://img.shields.io/badge/DuckDB-In--Process_SQL-FFF000.svg?logo=duckdb&logoColor=black)](https://duckdb.org)
 [![Streamlit](https://img.shields.io/badge/Streamlit-Interactive_App-FF4B4B.svg?logo=streamlit&logoColor=white)](https://streamlit.io)
 [![PyTest](https://img.shields.io/badge/PyTest-8%20Passing-success.svg?logo=pytest&logoColor=white)](https://pytest.org)
-[![Domain](https://img.shields.io/badge/Domain-Strategic_Procurement_%26_Risk-green.svg)](https://eaton.com)
+![Domain](https://img.shields.io/badge/Domain-Strategic_Procurement_%26_Risk-green.svg)
 
 > **An enterprise procurement decision intelligence platform combining high-throughput DuckDB SQL analytics with machine learning (XGBoost + SHAP), Isolation Forest anomaly detection, a multi-modal Scope-3 carbon optimizer, and a FastAPI REST microservice.** Analyzes 250,000+ purchase orders across global manufacturing tiers to track **On-Time In-Full (OTIF)** compliance, monitor **Purchase Price Variance (PPV)**, optimize **dual-sourcing order splits**, and proactively forecast inbound component shipment delays *before* factory line stoppage occurs.
 
 ---
 
+## Data Provenance
+
+**All data in this repository is synthetic.** There is no real company data here — no purchase-order
+history, no supplier master, and no proprietary information from any employer or client.
+
+Every table is produced by [`src/data_generator.py`](src/data_generator.py) from seeded NumPy
+pseudo-random draws (`seed=42`), so any run reproduces the same dataset byte for byte. All supplier
+names are fictional; where a commodity needed a plausible vendor, an invented company was used
+specifically so that no performance rating in this repository is attributable to a real business.
+
+**Consequently, every figure in this README — the ROC-AUC of approximately 0.91, OTIF rates, PPV,
+and HHI concentration scores — is a property of the simulation, not a measured outcome for any
+organization.** The model score in particular reflects a synthetic delay process with learnable
+structure; it should not be read as accuracy against real procurement data.
+
+---
+
 ## 📌 Executive Summary & Business Impact
 
-In global electrical, aerospace, and industrial manufacturing (such as **Eaton's global supply chain**), procurement teams face two critical margin-eroding risks:
+In global electrical, aerospace, and industrial manufacturing, procurement teams face two critical margin-eroding risks:
 1. **Purchase Price Variance (PPV) & Inflation**: Uncontrolled commodity price surges on copper, electrical steel, and semiconductor controllers degrade operating margins.
 2. **Supplier Lead-Time Volatility**: Inbound component delays cause costly assembly line changeovers and missed customer commitments.
 
