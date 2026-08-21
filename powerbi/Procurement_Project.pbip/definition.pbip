@@ -3,7 +3,7 @@
   "artifacts": [
     {
       "report": {
-        "path": "Eaton_Procurement.Report"
+        "path": "Procurement.Report"
       }
     }
   ]

@@ -30,6 +30,30 @@ structure; it should not be read as accuracy against real procurement data.
 
 ---
 
+## Power BI Deliverables
+
+**Shipped and openable in Power BI Desktop:**
+
+| Artifact | What it is |
+|---|---|
+| [`powerbi/Procurement_Risk_Platform.pbit`](powerbi/Procurement_Risk_Platform.pbit) | Power BI template with the procurement dataset |
+| [`powerbi/Procurement_Project.pbip`](powerbi/Procurement_Project.pbip) | Power BI Project format (`model.bim` + report definition) |
+| [`powerbi/Procurement_DataModel.xlsx`](powerbi/Procurement_DataModel.xlsx) | Star-schema Excel model over 25,000 modeled POs |
+
+**Design mockups — not screen captures:**
+
+The images in [`powerbi/mockups/`](powerbi/mockups/) are rendered with **matplotlib**,
+not captured from Power BI. They are the target layout for the report: page
+composition, KPI hierarchy, colour semantics, and drill path. The `.pbit` above
+carries a starter layout and does not yet reproduce them; building that out in
+Power BI Desktop is the open work item. Every supplier shown is fictional.
+
+![Procurement war room mockup](powerbi/mockups/page1_procurement_command_center.png)
+
+See [`powerbi/mockups/README.md`](powerbi/mockups/README.md) for the full breakdown.
+
+---
+
 ## 📌 Executive Summary & Business Impact
 
 In global electrical, aerospace, and industrial manufacturing, procurement teams face two critical margin-eroding risks:
